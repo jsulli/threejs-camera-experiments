@@ -1,7 +1,7 @@
 /* Configure HTMLWebpack plugin */
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const HTMLWebpackPluginConfig = new HtmlWebpackPlugin({
-    template: __dirname + '/src/index.html',
+    template: __dirname + '/src/html/index.html',
     filename: 'index.html',
     inject: 'body'
 })
@@ -10,7 +10,7 @@ const HTMLWebpackPluginConfig = new HtmlWebpackPlugin({
 const BrowserSyncPlugin = require('browser-sync-webpack-plugin')
 const BrowserSyncPluginConfig = new BrowserSyncPlugin({
     host: 'localhost',
-    port: 3000,
+    port: 8080,
     proxy: 'http://localhost:8080/'
 }, config = {
     reload: false
@@ -25,7 +25,7 @@ module.exports = {
     mode: 'development',
     devtool: 'source-map',
     entry: [
-        './src/index.ts'
+        './src/ts/index.ts'
     ],
     output: {
         path: __dirname + '/dist',

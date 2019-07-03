@@ -24,7 +24,6 @@
     "browser-sync": "latest",
     "browser-sync-webpack-plugin": "latest",
     "css-loader": "latest",
-    "extract-text-webpack-plugin": "latest",
     "html-webpack-plugin": "latest",
     "json-loader": "latest",
     "progress-bar-webpack-plugin": "latest",

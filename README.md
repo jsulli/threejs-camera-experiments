@@ -1,8 +1,9 @@
 # Typescript Three.js Webpack Starter
 
-- Typescript support.
+Prebuilt setup that includes all the basics needed to get a three.js/Typescript codebase started without any additional setup.
+
+- Typescript
 - Webpack
-- Html plugin
 - BrowserSync
 
 ## Usage
@@ -16,8 +17,6 @@ npm install typescript -g
 ### Start
 
 ```
-$ git clone https://github.com/pinqy520/three-typescript-starter.git
-$ cd three-typescript-starter
-$ npm install # or yarn
+$ npm install
 $ npm start
 ```

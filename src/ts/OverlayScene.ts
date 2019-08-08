@@ -23,7 +23,6 @@ export class OverlayScene extends BaseScene {
     private cssScene = new Scene();
     private matrix = new Matrix4();
     private mark = new Mesh(new SphereBufferGeometry(0.1));
-    private cameraLocked = false;
 
     private raycaster = new Raycaster()
 
@@ -45,12 +44,13 @@ export class OverlayScene extends BaseScene {
         this.plane.scale.multiplyScalar(8);
         this.plane.geometry.computeBoundingBox();
         this.scene.add(this.plane);
-        //this.scene.add(this.mark);
         this.plane.updateMatrixWorld()
 
-        this.overlays = new Overlays(document.body);
+
+        // Align css overlay with plane object
+        this.overlays = new Overlays();
         this.cssObj = new CSS3DObject(this.overlays.parent)
-        this.cssObj.scale.multiplyScalar(0.001);
+        this.cssObj.scale.multiplyScalar(0.001); // divide size by pixel width of the element. Why? Who knows.
         this.cssObj.applyMatrix(this.plane.matrixWorld)
         this.cssScene.add(this.cssObj)
 
@@ -65,7 +65,6 @@ export class OverlayScene extends BaseScene {
         this.cssRenderer.domElement.style.top = "0";
         this.cssRenderer.domElement.style.pointerEvents = "none";
         document.body.appendChild(this.cssRenderer.domElement);
-
 
         window.addEventListener('click', this.handleClick.bind(this))
         this.initialized = true;
@@ -94,36 +93,12 @@ export class OverlayScene extends BaseScene {
             const intersect = intersects[0];
             const normalized = intersect.point.applyMatrix4(this.matrix);
 
-            if(this.cameraLocked) {
+            if(this.controls.overlayActive) {
                 normalized.multiply(new Vector3(1, -1, 1));
-                console.log("normalized ")
-                console.log(normalized)
                 this.mark.position.copy(normalized);
                 this.moveElement(normalized.x, normalized.y)
             } else {
-
-                const dir = this.plane.up.clone().multiplyScalar(0.75);
-                dir.applyMatrix4(this.plane.matrixWorld);
-                dir.setZ(-dir.z);
-                const newPos = this.plane.position.clone().add(dir);
-                const pos = this.camera.position;
-                new TWEEN.Tween(pos)
-                    .to(newPos, 1000)
-                    .easing(TWEEN.Easing.Quadratic.InOut)
-                    .onComplete(() => {
-                        console.log("completed tween");
-                        this.controls.enableOverlay();
-                        this.cameraLocked = true;
-                    })
-                    .start()
-
-                new TWEEN.Tween(this.controls.target)
-                    .to(this.plane.position, 1000)
-                    .easing(TWEEN.Easing.Quadratic.InOut)
-                    .onUpdate(() => {
-                        console.log("moving target");
-                    })
-                    .start()
+                this.controls.enableOverlay(this.plane);
             }
         }
     }

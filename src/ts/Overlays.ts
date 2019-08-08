@@ -6,12 +6,9 @@ export class Overlays {
     private child;
     private child2;
 
-    constructor(container) {
+    constructor() {
         this.parent = document.createElement('div');
         this.parent.style.position = "absolute";
-        //this.parent.style.top = "0";
-        //this.parent.style.left = "0";
-        //this.parent.style.background = "#ccff33";
         this.parent.style.width = "1000px";
         this.parent.style.height = "1000px";
         this.parent.style.pointerEvents = "none";
@@ -24,7 +21,6 @@ export class Overlays {
         this.child.style.bottom = "0";
         this.child.style.right = "0";
         this.parent.appendChild(this.child);
-        //container.appendChild(this.parent);
 
         this.child2 = document.createElement('div');
         this.child2.style.position = "absolute";

@@ -1,22 +1,34 @@
 
-import {MOUSE, Vector3} from "three"
-import {OrbitControls} from "./OrbitControls"
+import {Mesh, MOUSE, Object3D, Vector3} from "three"
+import {FineOrbitControls} from "./FineOrbitControls"
+import * as TWEEN from "@tweenjs/tween.js"
 
 
-export class OverlayControls extends OrbitControls {
+export class OverlayControls extends FineOrbitControls {
 
-    private overlayEnabled = false;
-    private previousTarget: Vector3
+    public overlayActive = false;
+
     protected panOffset = new Vector3();
+    protected distanceFromPlane = 6;
+    protected overlayObj: Object3D
+
+    private previousTarget: Vector3
 
     constructor(camera, element) {
         super(camera, element);
-        console.log("creating overlay controls")
+        this.minDistance = 1;
     }
 
 
-    enableOverlay() {
-        console.log("enabling overlay")
+    enableOverlay(overlayObj: Object3D) {
+        this.overlayObj = overlayObj;
+
+        this.overlayActive = true;
+
+        const normal = overlayObj.up.clone();
+        // tbh i don't know why this matrix needs to be transposed. Something has weird axis'
+        normal.applyMatrix4(overlayObj.matrixWorld.transpose()).normalize();
+
         this.previousTarget = this.target;
         this.enableRotate = false;
         this.mouseButtons = {
@@ -24,53 +36,56 @@ export class OverlayControls extends OrbitControls {
             MIDDLE: MOUSE.DOLLY,
             RIGHT: MOUSE.PAN
         }
-        this.minDistance = 1;
-        this.maxDistance = 6;
+
+        //
+        normal.multiplyScalar(this.distanceFromPlane);
+        const newPos = overlayObj.position.clone().add(normal);
+
+        new TWEEN.Tween(this.object.position)
+            .to(newPos, 1000)
+            .easing(TWEEN.Easing.Quadratic.InOut)
+            .onComplete(() => {
+                this.enableRotate = false;
+                this.maxDistance = this.distanceFromPlane;
+            })
+            .start()
+
+        new TWEEN.Tween(this.target)
+            .to(overlayObj.position, 1000)
+            .easing(TWEEN.Easing.Quadratic.InOut)
+            .start()
     }
 
+
+    public updatePan() {
+        if(this.overlayActive) {
+            const home = this.overlayObj.up.clone();
+            home.applyMatrix4(this.overlayObj.matrixWorld).normalize();
+            home.multiplyScalar(this.distanceFromPlane);
+        } else {
+            super.updatePan()
+        }
+
+        // // move target to panned location
+        // if (this.enableDamping === true) {
+        //     this.target.addScaledVector(this.panOffset, this.dampingFactor)
+        //     this.panOffset.multiplyScalar(1 - this.dampingFactor)
+        // } else {
+        //     this.target.add(this.panOffset)
+        //     this.panOffset.set(0, 0, 0)
+        // }
+    }
+
+
     disableOverlay() {
-        this.target = this.previousTarget;
+        this.target.copy(this.previousTarget);
         this.enableRotate = true;
         this.mouseButtons = {
             LEFT: MOUSE.ROTATE,
             MIDDLE: MOUSE.DOLLY,
             RIGHT: MOUSE.PAN
         }
-    }
-
-    // pan(x, y) {
-    //     console.log("panning")
-    //     return super.pan(x, y)
-    // }
-    //
-    // panUp() {
-    //     console.log("panning")
-    //     const v = new Vector3();
-    //     return (distance, matrix) => {
-    //         if(this.screenSpacePanning) {
-    //             v.setFromMatrixColumn(matrix, 1);
-    //         } else {
-    //             v.setFromMatrixColumn(matrix, 0);
-    //             v.crossVectors(this.object.up, v);
-    //         }
-    //         v.multiplyScalar(distance);
-    //         this.panOffset.add(v);
-    //         this.logOffset()
-    //     }
-    // }
-    //
-    // panLeft() {
-    //     const v = new Vector3();
-    //     return (distance, matrix) => {
-    //         v.setFromMatrixColumn(matrix, 0);
-    //         v.multiplyScalar(-distance);
-    //         this.panOffset.add(v);
-    //         this.logOffset()
-    //     }
-    // }
-
-    logOffset() {
-        console.log("panOffset")
-        console.log(this.panOffset);
+        this.maxDistance = Infinity;
+        this.update();
     }
 }

@@ -11,7 +11,7 @@ import {
 } from "three"
 
 
-enum STATE {
+export enum CONTROL_STATE {
     NONE = -1,
     ROTATE,
     DOLLY,
@@ -78,7 +78,7 @@ export class OrbitControls extends EventDispatcher {
     protected startEvent = {type: 'start'}
     protected endEvent = {type: 'end'}
 
-    protected state = STATE.NONE
+    protected state = CONTROL_STATE.NONE
     protected EPS = 0.000001
 
     protected spherical = new Spherical()
@@ -151,7 +151,7 @@ export class OrbitControls extends EventDispatcher {
 
         this.update()
 
-        this.state = STATE.NONE
+        this.state = CONTROL_STATE.NONE
     }
 
 
@@ -171,22 +171,17 @@ export class OrbitControls extends EventDispatcher {
         // angle from z-axis around y-axis
         this.spherical.setFromVector3(offset)
 
-        if (this.autoRotate && this.state === STATE.NONE) {
-
+        if (this.autoRotate && this.state === CONTROL_STATE.NONE) {
             this.rotateLeft(this.getAutoRotationAngle())
-
         }
 
         if (this.enableDamping) {
-
+            console.log("damping factor " + this.dampingFactor)
             this.spherical.theta += this.sphericalDelta.theta * this.dampingFactor
             this.spherical.phi += this.sphericalDelta.phi * this.dampingFactor
-
         } else {
-
             this.spherical.theta += this.sphericalDelta.theta
             this.spherical.phi += this.sphericalDelta.phi
-
         }
 
         // restrict theta to be between desired limits
@@ -200,33 +195,29 @@ export class OrbitControls extends EventDispatcher {
         // restrict radius to be between desired limits
         this.spherical.radius = Math.max(this.minDistance, Math.min(this.maxDistance, this.spherical.radius))
 
-        // move target to panned location
+        if (this.enableDamping === true) {
+            this.sphericalDelta.theta *= (1 - this.dampingFactor)
+            this.sphericalDelta.phi *= (1 - this.dampingFactor)
+        } else {
+            this.sphericalDelta.set(0, 0, 0)
+        }
 
+
+        // move target to panned location
         if (this.enableDamping === true) {
             this.target.addScaledVector(this.panOffset, this.dampingFactor)
+            this.panOffset.multiplyScalar(1 - this.dampingFactor)
         } else {
             this.target.add(this.panOffset)
+            this.panOffset.set(0, 0, 0)
         }
 
         offset.setFromSpherical(this.spherical)
 
         // rotate offset back to "camera-up-vector-is-up" space
         offset.applyQuaternion(quatInverse)
-
         position.copy(this.target).add(offset)
-
         this.object.lookAt(this.target)
-
-        if (this.enableDamping === true) {
-            this.sphericalDelta.theta *= (1 - this.dampingFactor)
-            this.sphericalDelta.phi *= (1 - this.dampingFactor)
-
-            this.panOffset.multiplyScalar(1 - this.dampingFactor)
-        } else {
-            this.sphericalDelta.set(0, 0, 0)
-            this.panOffset.set(0, 0, 0)
-        }
-
         this.scale = 1
 
         // update condition is:
@@ -265,6 +256,11 @@ export class OrbitControls extends EventDispatcher {
         window.removeEventListener('keydown', this.onKeyDown.bind(this), false)
     };
 
+
+
+    //
+    // Internals
+    //
 
     protected getAutoRotationAngle() {
         return 2 * Math.PI / 60 / 60 * this.autoRotateSpeed
@@ -346,9 +342,12 @@ export class OrbitControls extends EventDispatcher {
 
 
     protected dollyIn(dollyScale) {
+
         if (this.object instanceof PerspectiveCamera) {
 
             this.scale /= dollyScale
+            console.log("scale " + this.scale)
+            console.log("distance to target: " + this.object.position.distanceTo(this.target));
 
         } else if (this.object instanceof OrthographicCamera) {
 
@@ -614,11 +613,11 @@ export class OrbitControls extends EventDispatcher {
                         if (event.ctrlKey || event.metaKey || event.shiftKey) {
                             if (this.enablePan === false) return
                             this.handleMouseDownPan(event)
-                            this.state = STATE.PAN
+                            this.state = CONTROL_STATE.PAN
                         } else {
                             if (this.enableRotate === false) return
                             this.handleMouseDownRotate(event)
-                            this.state = STATE.ROTATE
+                            this.state = CONTROL_STATE.ROTATE
                         }
                         break
 
@@ -626,16 +625,16 @@ export class OrbitControls extends EventDispatcher {
                         if (event.ctrlKey || event.metaKey || event.shiftKey) {
                             if (this.enableRotate === false) return
                             this.handleMouseDownRotate(event)
-                            this.state = STATE.ROTATE
+                            this.state = CONTROL_STATE.ROTATE
                         } else {
                             if (this.enablePan === false) return
                             this.handleMouseDownPan(event)
-                            this.state = STATE.PAN
+                            this.state = CONTROL_STATE.PAN
                         }
                         break
 
                     default:
-                        this.state = STATE.NONE
+                        this.state = CONTROL_STATE.NONE
                 }
                 break
 
@@ -644,9 +643,9 @@ export class OrbitControls extends EventDispatcher {
                 if (this.mouseButtons.MIDDLE === MOUSE.DOLLY) {
                     if (this.enableZoom === false) return
                     this.handleMouseDownDolly(event)
-                    this.state = STATE.DOLLY
+                    this.state = CONTROL_STATE.DOLLY
                 } else {
-                    this.state = STATE.NONE
+                    this.state = CONTROL_STATE.NONE
                 }
                 break
 
@@ -657,23 +656,23 @@ export class OrbitControls extends EventDispatcher {
                     case MOUSE.ROTATE:
                         if (this.enableRotate === false) return
                         this.handleMouseDownRotate(event)
-                        this.state = STATE.ROTATE
+                        this.state = CONTROL_STATE.ROTATE
                         break
 
                     case MOUSE.PAN:
 
                         if (this.enablePan === false) return
                         this.handleMouseDownPan(event)
-                        this.state = STATE.PAN
+                        this.state = CONTROL_STATE.PAN
                         break
 
                     default:
-                        this.state = STATE.NONE
+                        this.state = CONTROL_STATE.NONE
                 }
                 break
         }
 
-        if (this.state !== STATE.NONE) {
+        if (this.state !== CONTROL_STATE.NONE) {
             document.addEventListener('mousemove', this.onMouseMove.bind(this), false)
             document.addEventListener('mouseup', this.onMouseUp.bind(this), false)
             this.dispatchEvent(this.startEvent)
@@ -688,19 +687,19 @@ export class OrbitControls extends EventDispatcher {
 
         switch (this.state) {
 
-            case STATE.ROTATE:
+            case CONTROL_STATE.ROTATE:
 
                 if (this.enableRotate === false) return
                 this.handleMouseMoveRotate(event)
                 break
 
-            case STATE.DOLLY:
+            case CONTROL_STATE.DOLLY:
 
                 if (this.enableZoom === false) return
                 this.handleMouseMoveDolly(event)
                 break
 
-            case STATE.PAN:
+            case CONTROL_STATE.PAN:
 
                 if (this.enablePan === false) return
                 this.handleMouseMovePan(event)
@@ -721,13 +720,13 @@ export class OrbitControls extends EventDispatcher {
 
         this.dispatchEvent(this.endEvent)
 
-        this.state = STATE.NONE
+        this.state = CONTROL_STATE.NONE
 
     }
 
 
     protected onMouseWheel(event) {
-        if (this.enabled === false || this.enableZoom === false || (this.state !== STATE.NONE && this.state !== STATE.ROTATE)) return
+        if (this.enabled === false || this.enableZoom === false || (this.state !== CONTROL_STATE.NONE && this.state !== CONTROL_STATE.ROTATE)) return
 
         event.preventDefault()
         event.stopPropagation()
@@ -760,18 +759,18 @@ export class OrbitControls extends EventDispatcher {
 
                         if (this.enableRotate === false) return
                         this.handleTouchStartRotate(event)
-                        this.state = STATE.TOUCH_ROTATE
+                        this.state = CONTROL_STATE.TOUCH_ROTATE
                         break
 
                     case TOUCH.PAN:
 
                         if (this.enablePan === false) return
                         this.handleTouchStartPan(event)
-                        this.state = STATE.TOUCH_PAN
+                        this.state = CONTROL_STATE.TOUCH_PAN
                         break
 
                     default:
-                        this.state = STATE.NONE
+                        this.state = CONTROL_STATE.NONE
                 }
                 break
 
@@ -783,29 +782,29 @@ export class OrbitControls extends EventDispatcher {
 
                         if (this.enableZoom === false && this.enablePan === false) return
                         this.handleTouchStartDollyPan(event)
-                        this.state = STATE.TOUCH_DOLLY_PAN
+                        this.state = CONTROL_STATE.TOUCH_DOLLY_PAN
                         break
 
                     case TOUCH.DOLLY_ROTATE:
 
                         if (this.enableZoom === false && this.enableRotate === false) return
                         this.handleTouchStartDollyRotate(event)
-                        this.state = STATE.TOUCH_DOLLY_ROTATE
+                        this.state = CONTROL_STATE.TOUCH_DOLLY_ROTATE
                         break
 
                     default:
-                        this.state = STATE.NONE
+                        this.state = CONTROL_STATE.NONE
                 }
 
                 break
 
             default:
 
-                this.state = STATE.NONE
+                this.state = CONTROL_STATE.NONE
 
         }
 
-        if (this.state !== STATE.NONE) {
+        if (this.state !== CONTROL_STATE.NONE) {
             this.dispatchEvent(this.startEvent)
         }
     }
@@ -820,28 +819,28 @@ export class OrbitControls extends EventDispatcher {
 
         switch (this.state) {
 
-            case STATE.TOUCH_ROTATE:
+            case CONTROL_STATE.TOUCH_ROTATE:
 
                 if (this.enableRotate === false) return
                 this.handleTouchMoveRotate(event)
                 this.update()
                 break
 
-            case STATE.TOUCH_PAN:
+            case CONTROL_STATE.TOUCH_PAN:
 
                 if (this.enablePan === false) return
                 this.handleTouchMovePan(event)
                 this.update()
                 break
 
-            case STATE.TOUCH_DOLLY_PAN:
+            case CONTROL_STATE.TOUCH_DOLLY_PAN:
 
                 if (this.enableZoom === false && this.enablePan === false) return
                 this.handleTouchMoveDollyPan(event)
                 this.update()
                 break
 
-            case STATE.TOUCH_DOLLY_ROTATE:
+            case CONTROL_STATE.TOUCH_DOLLY_ROTATE:
 
                 if (this.enableZoom === false && this.enableRotate === false) return
                 this.handleTouchMoveDollyRotate(event)
@@ -850,7 +849,7 @@ export class OrbitControls extends EventDispatcher {
 
             default:
 
-                this.state = STATE.NONE
+                this.state = CONTROL_STATE.NONE
         }
     }
 
@@ -860,7 +859,7 @@ export class OrbitControls extends EventDispatcher {
         if (this.enabled === false) return
         this.handleTouchEnd(event)
         this.dispatchEvent(this.endEvent)
-        this.state = STATE.NONE
+        this.state = CONTROL_STATE.NONE
 
     }
 

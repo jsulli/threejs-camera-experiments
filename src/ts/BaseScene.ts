@@ -11,7 +11,6 @@ import {
     Vector3,
     WebGLRenderer
 } from "three"
-import {OrbitControls} from "three/examples/jsm/controls/OrbitControls"
 import {OverlayControls} from "./OverlayControls"
 
 

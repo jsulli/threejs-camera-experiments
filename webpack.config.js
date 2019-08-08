@@ -16,6 +16,14 @@ const BrowserSyncPluginConfig = new BrowserSyncPlugin({
     reload: false
 })
 
+/* Configure assets */
+const CopyWebpackPlugin = require('copy-webpack-plugin')
+const CopyWebpackPluginConfig = new CopyWebpackPlugin([{
+    from: 'src/assets',
+    to: 'assets'
+}])
+
+
 /* Configure ProgressBar */
 const ProgressBarPlugin = require('progress-bar-webpack-plugin')
 const ProgressBarPluginConfig = new ProgressBarPlugin()
@@ -70,5 +78,5 @@ module.exports = {
         ]
     },
     resolve: { extensions: [".web.ts", ".web.js", ".ts", ".js"] },
-    plugins: [HTMLWebpackPluginConfig, BrowserSyncPluginConfig, ProgressBarPluginConfig]
+    plugins: [HTMLWebpackPluginConfig, BrowserSyncPluginConfig, CopyWebpackPluginConfig, ProgressBarPluginConfig]
 }

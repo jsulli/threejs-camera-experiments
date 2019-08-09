@@ -38,7 +38,6 @@ export class Overlays {
         let timer2 = 0.0015 * Date.now();
         const scale = 10
         const height = scale + (scale * Math.sin(timer));
-        //console.log("height = " + height)
         this.child.style.height = height + "%";
         this.child2.style.width = scale + (scale * Math.sin(timer2)) + "%";
     }
@@ -47,5 +46,4 @@ export class Overlays {
         this.child.style.left = x + "px";
         this.child.style.top = y + "px";
     }
-
 }

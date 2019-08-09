@@ -2,6 +2,14 @@ import {CONTROL_STATE, OrbitControls} from "./OrbitControls"
 import {Quaternion, Vector3} from "three"
 
 
+/*
+ * An extension of OrbitControls that breaks the `update()` function into smaller pieces to allow
+ * for more granular extension. This could probably have been done in the base class but I didn't
+ * want to make functional changes there, where they would be difficult to find.
+ * Only functional change is the addition of the `forceUp` property which allows the `lookAt` call
+ * in every update to be disabled, so that the up vector doesn't mess with the roll of the camera
+ */
+
 export class FineOrbitControls extends OrbitControls {
 
     public forceUp = true;
@@ -101,6 +109,4 @@ export class FineOrbitControls extends OrbitControls {
             this.panOffset.set(0, 0, 0)
         }
     }
-
-
 }

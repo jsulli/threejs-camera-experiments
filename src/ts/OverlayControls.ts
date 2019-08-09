@@ -1,8 +1,14 @@
 
-import {Mesh, MOUSE, Object3D, Vector3} from "three"
-import {FineOrbitControls} from "./FineOrbitControls"
+import { MOUSE, Object3D, Vector3 } from "three"
+import { FineOrbitControls } from "./FineOrbitControls"
 import * as TWEEN from "@tweenjs/tween.js"
 
+
+/*
+ * Another extension of camera controls. This one has code tailored for "snapping" to an image
+ * plane, including animations. Special mouse, pan, and zoom controls are included. Everything works,
+ * but there is definitely room for fine tuning and refinement.
+ */
 
 export class OverlayControls extends FineOrbitControls {
 
@@ -36,21 +42,20 @@ export class OverlayControls extends FineOrbitControls {
             RIGHT: MOUSE.PAN
         }
 
+        // camera.lookAt in orbitControls forces the camera's look vector to always be orthogonal to its up vector.
+        // basically the camera stays horizontal when it needs to roll.
+        // For jumping back to the previous pos/rot after "leaving" the photo view we should be doing tween's
+        // back to the original pos/rot, so that should be saved here. This is particularly important for restoring normal roll
+        this.forceUp = false;
         // handle camera roll
         new TWEEN.Tween(this.object.quaternion)
             .to(this.overlayObj.quaternion.clone(), 1000)
-            .onComplete(() => {
-                console.log("quaternions")
-                console.log(this.overlayObj.quaternion)
-                console.log(this.object.quaternion)
-            })
             .start()
 
-        //
+
         normal.multiplyScalar(this.distanceFromPlane);
         const newPos = overlayObj.position.clone().add(normal);
 
-        this.forceUp = false;
 
         new TWEEN.Tween(this.object.position)
             .to(newPos, 1000)
@@ -61,23 +66,17 @@ export class OverlayControls extends FineOrbitControls {
             })
             .start()
 
-        console.log("positions")
-        console.log(this.overlayObj.position)
-        console.log(this.target)
+
         new TWEEN.Tween(this.target)
             .to(overlayObj.position.clone(), 1000)
             .easing(TWEEN.Easing.Quadratic.InOut)
-            .onComplete(() => {
-                console.log("positions")
-                console.log(this.overlayObj.position)
-                console.log(this.target)
-            })
             .start()
     }
 
 
     public updatePan() {
         if(this.overlayActive) {
+            // a million failed experiments died here
             const home = this.overlayObj.up.clone();
             home.applyMatrix4(this.overlayObj.matrixWorld).normalize();
             home.multiplyScalar(this.distanceFromPlane);
@@ -85,15 +84,6 @@ export class OverlayControls extends FineOrbitControls {
         } else {
             super.updatePan()
         }
-
-        // // move target to panned location
-        // if (this.enableDamping === true) {
-        //     this.target.addScaledVector(this.panOffset, this.dampingFactor)
-        //     this.panOffset.multiplyScalar(1 - this.dampingFactor)
-        // } else {
-        //     this.target.add(this.panOffset)
-        //     this.panOffset.set(0, 0, 0)
-        // }
     }
 
 

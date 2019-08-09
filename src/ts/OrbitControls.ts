@@ -22,7 +22,12 @@ export enum CONTROL_STATE {
     TOUCH_DOLLY_ROTATE
 }
 
-
+/*
+ * This is a TS rewrite of OrbitControls with no functional changes except turning interals properties
+ * and functions into `protected`, to allow for more extendability without need to make functional
+ * changes within the base class itself.
+ *
+ */
 export class OrbitControls extends EventDispatcher {
 
     public object: PerspectiveCamera | OrthographicCamera

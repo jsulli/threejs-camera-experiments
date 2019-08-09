@@ -4,7 +4,6 @@ import {
     DirectionalLight,
     Mesh,
     MeshBasicMaterial,
-    MOUSE,
     PerspectiveCamera,
     Scene,
     SphereBufferGeometry,

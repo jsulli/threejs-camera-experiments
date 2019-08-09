@@ -98,7 +98,6 @@ export class OverlayScene extends BaseScene {
             const point = intersect.point;
             point.sub(this.plane.position)
             const normalized = point.applyMatrix4(this.matrix);
-            //normalized.add(this.plane.position)
 
             if(this.controls.overlayActive) {
                 normalized.multiply(new Vector3(1, -1, 1));
@@ -123,6 +122,5 @@ export class OverlayScene extends BaseScene {
             this.overlays.update();
             this.cssRenderer.render(this.cssScene, this.camera);
         }
-
     }
 }

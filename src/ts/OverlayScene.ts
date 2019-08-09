@@ -41,6 +41,10 @@ export class OverlayScene extends BaseScene {
         })
 
         this.plane.rotateX(-Math.PI / 4);
+        this.plane.translateX(1.0)
+        this.plane.translateY(0.5)
+        this.plane.translateZ(0.8)
+        this.plane.rotateY(Math.PI / 8)
         this.plane.scale.multiplyScalar(8);
         this.plane.geometry.computeBoundingBox();
         this.scene.add(this.plane);
@@ -91,9 +95,12 @@ export class OverlayScene extends BaseScene {
     private handleIntersect(intersects: Intersection[]) {
         if(intersects && intersects.length > 0) {
             const intersect = intersects[0];
-            const normalized = intersect.point.applyMatrix4(this.matrix);
+            const point = intersect.point;
+            point.sub(this.plane.position)
+            const normalized = point.applyMatrix4(this.matrix);
+            //normalized.add(this.plane.position)
 
-            if(this.controls.overlayActive) {
+            if(true) {
                 normalized.multiply(new Vector3(1, -1, 1));
                 this.mark.position.copy(normalized);
                 this.moveElement(normalized.x, normalized.y)

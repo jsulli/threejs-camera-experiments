@@ -9,7 +9,7 @@ export class OverlayControls extends FineOrbitControls {
     public overlayActive = false;
 
     protected panOffset = new Vector3();
-    protected distanceFromPlane = 6;
+    protected distanceFromPlane = 8;
     protected overlayObj: Object3D
 
     private previousTarget: Vector3
@@ -25,9 +25,8 @@ export class OverlayControls extends FineOrbitControls {
 
         this.overlayActive = true;
 
-        const normal = overlayObj.up.clone();
-        // tbh i don't know why this matrix needs to be transposed. Something has weird axis'
-        normal.applyMatrix4(overlayObj.matrixWorld.transpose()).normalize();
+        const forward = new Vector3(0, 0, 1);
+        const normal = forward.applyMatrix4(this.overlayObj.matrixWorld).normalize()
 
         this.previousTarget = this.target;
         this.enableRotate = false;
@@ -37,9 +36,21 @@ export class OverlayControls extends FineOrbitControls {
             RIGHT: MOUSE.PAN
         }
 
+        // handle camera roll
+        new TWEEN.Tween(this.object.quaternion)
+            .to(this.overlayObj.quaternion.clone(), 1000)
+            .onComplete(() => {
+                console.log("quaternions")
+                console.log(this.overlayObj.quaternion)
+                console.log(this.object.quaternion)
+            })
+            .start()
+
         //
         normal.multiplyScalar(this.distanceFromPlane);
         const newPos = overlayObj.position.clone().add(normal);
+
+        this.forceUp = false;
 
         new TWEEN.Tween(this.object.position)
             .to(newPos, 1000)
@@ -50,9 +61,17 @@ export class OverlayControls extends FineOrbitControls {
             })
             .start()
 
+        console.log("positions")
+        console.log(this.overlayObj.position)
+        console.log(this.target)
         new TWEEN.Tween(this.target)
-            .to(overlayObj.position, 1000)
+            .to(overlayObj.position.clone(), 1000)
             .easing(TWEEN.Easing.Quadratic.InOut)
+            .onComplete(() => {
+                console.log("positions")
+                console.log(this.overlayObj.position)
+                console.log(this.target)
+            })
             .start()
     }
 
@@ -62,6 +81,7 @@ export class OverlayControls extends FineOrbitControls {
             const home = this.overlayObj.up.clone();
             home.applyMatrix4(this.overlayObj.matrixWorld).normalize();
             home.multiplyScalar(this.distanceFromPlane);
+            super.updatePan()
         } else {
             super.updatePan()
         }

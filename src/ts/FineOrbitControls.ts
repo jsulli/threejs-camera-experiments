@@ -4,7 +4,7 @@ import {Quaternion, Vector3} from "three"
 
 export class FineOrbitControls extends OrbitControls {
 
-
+    public forceUp = true;
 
     update(): boolean {
         const offset = new Vector3()
@@ -27,7 +27,10 @@ export class FineOrbitControls extends OrbitControls {
         // rotate offset back to "camera-up-vector-is-up" space
         offset.applyQuaternion(quatInverse)
         position.copy(this.target).add(offset)
-        this.object.lookAt(this.target)
+        if(this.forceUp) {
+            this.object.lookAt(this.target)
+        }
+
         this.scale = 1
 
         // update condition is:

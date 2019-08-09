@@ -100,7 +100,7 @@ export class OverlayScene extends BaseScene {
             const normalized = point.applyMatrix4(this.matrix);
             //normalized.add(this.plane.position)
 
-            if(true) {
+            if(this.controls.overlayActive) {
                 normalized.multiply(new Vector3(1, -1, 1));
                 this.mark.position.copy(normalized);
                 this.moveElement(normalized.x, normalized.y)
